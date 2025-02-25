@@ -1,6 +1,5 @@
 numpy
 tensorflow==2.17.0
 ultralytics
-torch
 pillow
 flask
