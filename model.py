@@ -1,5 +1,5 @@
 from ultralytics import YOLO
-import torch
+import numpy as np
 from PIL import Image
 import os
 
@@ -18,7 +18,7 @@ def detect_with_dir():
             for result in results:
                 i = 0
                 image = Image.open(path)
-                cords = torch.round(result.boxes.xyxy).to(torch.int)
+                cords = np.round(result.boxes.xyxy).astype(int)
                 for x in cords:
                     i += 1
                     box = image.crop(x.tolist())
