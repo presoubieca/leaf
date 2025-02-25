@@ -38,7 +38,7 @@ def detect_with_image(img):
     results = model.predict(img, save=False, conf=0.5)
     images = []
     for result in results:
-        cords = torch.round(result.boxes.xyxy).to(torch.int)
+       
         for box in result.boxes:
             x1, y1, x2, y2 = map(int, box.xyxy[0])
 
@@ -47,13 +47,5 @@ def detect_with_image(img):
                     cropped_object = img.crop((x1, y1, x2, y2))
                     print("x1="+str(x1)+" x2="+str(x2)+" y1="+str(y1)+" y2="+str(y2))
                     images.append(cropped_object)
-
-        # for x in cords:
-        #     box = img.crop(x.tolist())
-        #     if box.size[0] >= 65 and box.size[1] >= 65:  # may change based on the kind of data and resolution (further testing)
-        #         if (not box.size[0] * 2.5 < box.size[1]
-        #                 and not box.size[1] * 2.5 < box.size[0]):  # prevents extremely wide but very short or extremely long but very narrow images to appearing
-        #             print(img)
-        #             images.append(img)
 
     return images
