@@ -21,14 +21,14 @@ def index():
 
         for file in files:
             if file and file.filename.lower().endswith(('png', 'jpg', 'jpeg', 'gif')):
-                # Open the image file using Pillow
+                # Opens the image file using Pillow
                 image = Image.open(file) # webkitdirectory
 
                 # gets normal size, resizes, gets new size
                 result,image2 = tester.classify_web(image)
 
                 for x in range(len(image2)):
-                    # Save processed image to in-memory buffer (without saving to disk)
+                    # Save processed image to in-memory buffer
                     buffer = io.BytesIO()
                     image2[x].save(buffer, format='PNG')
                     buffer.seek(0)
@@ -36,7 +36,7 @@ def index():
                     # Encode the image to base64
                     encoded_image = base64.b64encode(buffer.read()).decode('utf-8')
                     data_uri = f"data:image/png;base64,{encoded_image}"
-                    # data_uri is now a usable image
+                    
 
                     # Store the original size, new size, and image URI
                     images_info.append({
@@ -47,4 +47,4 @@ def index():
     return render_template('index.html', images_info=images_info)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
