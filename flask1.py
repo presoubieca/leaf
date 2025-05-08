@@ -24,7 +24,7 @@ def index():
                 # Opens the image file using Pillow
                 image = Image.open(file) # webkitdirectory
 
-                # gets normal size, resizes, gets new size
+                # returns a list of results and a list of images of the individual leaves
                 result,image2 = tester.classify_web(image)
 
                 for x in range(len(image2)):
@@ -38,13 +38,13 @@ def index():
                     data_uri = f"data:image/png;base64,{encoded_image}"
                     
 
-                    # Store the original size, new size, and image URI
                     images_info.append({
                         'data_uri': data_uri,
                         'result': result[x]
                     })
 
     return render_template('index.html', images_info=images_info)
+
 
 if __name__ == '__main__':
     app.run(debug=False)

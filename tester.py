@@ -1,41 +1,63 @@
-import model
-import tensorflow as tf
+import model as md
 import os
 import numpy as np
+import torch
+from torchvision.models import resnet18
+from torchvision import transforms
+from PIL import Image
 
 def classify_web(img):
-    imgs = model.detect_with_image(img)
-    if imgs is not None:
-        di = os.getcwd()
-        loaded_model = tf.keras.models.load_model(r'models\Sick_or_Not_1.11.keras') # loading model
+    imgs = md.detect_with_image(img)
+    model = resnet18()
+    model.fc = torch.nn.Linear(model.fc.in_features, 2)  # Match number of output classes
+    model.load_state_dict(torch.load('models/torchV1.2.pth', map_location='cpu'))
+    model.eval()
 
-        ls = []
-        images = []
-        # TEST
-        for img in imgs:
+    # Define preprocessing (resize to 256x256)
+    preprocess = transforms.Compose([
+        transforms.Resize((256, 256)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                             std=[0.229, 0.224, 0.225])
+    ])
+    if imgs is None:
+        return [], []
 
-            # Preparing images for classification
-            img_array = tf.keras.preprocessing.image.img_to_array(img)
-            img_array = np.expand_dims(img_array, axis=0)
-            img_tensor = tf.convert_to_tensor(img_array)
+    ls = []
+    images = []
 
-            # Classifying images
-            res = loaded_model.predict(img_tensor)
+    for img in imgs:
 
-            if res[0][1] <= 0.87:
-                print(str(res[0][0])+"sick")
-                print(str(res[0][1])+"sick")
+        # Convert to RGB if needed
+        if img.mode != 'RGB':
+            img = img.convert('RGB')
 
-                ls.append("Sick")
-            else:
-                print(str(res[0][0])+"healthy")
-                print(str(res[0][1])+"healthy")
+        # Preprocess image
+        input_tensor = preprocess(img).unsqueeze(0)  # Shape: [1, 3, 256, 256]
 
-                ls.append("Healthy")
+        # Inference
+        with torch.no_grad():
+            output = model(input_tensor)
+            probs = torch.nn.functional.softmax(output, dim=1)
+            prob_healthy = probs[0][0].item() # probs[0][0] = how healthy probs probs[0][1] = how sick
 
-            images.append(img)
+        # Classify based on threshold
 
-        return ls, images
+        if prob_healthy <= 0.99:
+            print(f"{probs[0][0].item():.4f} sick")
+            print(f"{probs[0][1].item():.4f} sick")
+
+            ls.append("Sick")
+        else:
+            print(f"{probs[0][0].item():.4f} healthy")
+            print(f"{probs[0][1].item():.4f} healthy")
+
+            ls.append("Healthy")
+
+        images.append(img)
+
+    return ls, images
+
 
 def iterate_over_images(root_dir):
     for subdir, _, files in os.walk(root_dir):
